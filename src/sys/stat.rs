@@ -204,6 +204,22 @@ pub const fn makedev(major: u64, minor: u64) -> dev_t {
      (minor & 0x0000_00ff)
 }
 
+#[cfg(target_os = "freebsd")]
+pub const fn major(dev: dev_t) -> u64 {
+    (dev as u64 >> 8) & 0xff
+}
+
+#[cfg(target_os = "freebsd")]
+pub const fn minor(dev: dev_t) -> u64 {
+    dev as u64 & 0xffff_00ff
+}
+
+#[cfg(target_os = "freebsd")]
+pub const fn makedev(major: u64, minor: u64) -> dev_t {
+    // FreeeBSD 11 ABI, see discussion in.... (compatibility with 64 bit version?)
+    ((major as dev_t) << 8) | minor as dev_t
+}
+
 pub fn umask(mode: Mode) -> Mode {
     let prev = unsafe { libc::umask(mode.bits() as mode_t) };
     Mode::from_bits(prev).expect("[BUG] umask returned invalid Mode")
